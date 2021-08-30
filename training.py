@@ -342,24 +342,24 @@ if __name__ == '__main__':
         'mem_method': 'random',
         'sample_size': 1024,
         # exploration
-        'exploration': 0,
-        'exploration_decay': 0.2e-4,
-        'exploration_min': 0,
+        'exploration': 0.7,
+        'exploration_decay': 2e-6,
+        'exploration_min': 0.2,
         # discount
         'discount': 0.99,
         # learning rate
-        'actor_lr': 3e-5,
-        'value_lr': 1e-4,
-        'lr_decay': 1e-5,
+        'actor_lr': 3e-6,
+        'value_lr': 3e-5,
+        'lr_decay': 0,
         # target nets & update parameters
         'val_training_period': 1,
-        'act_training_period': 5,
+        'act_training_period': 2,
         'val_update_period': 1,
-        'act_update_period': 5,  
-        'update_factor': 0.05,
+        'act_update_period': 2,  
+        'update_factor': 0.2,
         # environment
         'speed_rwd': 1/20,
-        'circuits_mode': 'easy',
+        'circuits_mode': 'easy1',
         # load & save options
         'model_name': 'demo',
         'load_model': True,
@@ -440,17 +440,19 @@ if __name__ == '__main__':
         agent.actor.layers[i].trainable = False
     for i in [6]:
         layer = agent.actor.layers[i]
-        print(layer)
         shape = layer.get_weights()[0].shape
-        print(shape)
-        weights = layer.get_weights()[0] + np.random.rand(shape[0], shape[1])*0.0001
-        bias = layer.get_weights()[1] + np.random.rand(shape[1])*0.0001
+        weights = layer.get_weights()[0] + np.random.rand(shape[0], shape[1])*0.001
+        bias = layer.get_weights()[1] + np.random.rand(shape[1])*0.001
         layer.set_weights([weights, bias])
     
     for i in range(len(agent.value.layers)):
         agent.value.layers[i].trainable = False
+    
+    agent.target_actor = tf.keras.models.clone_model(agent.actor)
+    agent.target_value = tf.keras.models.clone_model(agent.value)
 
     agent.actor.summary()
+    agent.value.summary()
 
     metrics=[
         ('reward~env-rwd', {'steps': 'sum', 'episode': 'sum'}),
@@ -471,7 +473,7 @@ if __name__ == '__main__':
     pg = rl.Playground(env, agent)
 
     if not config.test_only:
-        pg.fit(100000, verbose=2, metrics=metrics, episodes_cycle_len=1,
+        pg.fit(100000, verbose=2, metrics=metrics, episodes_cycle_len=1000,
             reward_handler=lambda reward, **kwargs: 0.1*reward,
             callbacks=[check])
 
