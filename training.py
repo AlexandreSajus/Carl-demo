@@ -343,8 +343,8 @@ if __name__ == '__main__':
         'sample_size': 1024,
         # exploration
         'exploration': 0.7,
-        'exploration_decay': 2e-6,
-        'exploration_min': 0.2,
+        'exploration_decay': 2e-5,
+        'exploration_min': 0,
         # discount
         'discount': 0.99,
         # learning rate
@@ -367,6 +367,7 @@ if __name__ == '__main__':
         'load_actor': True,
         'load_value': True,
         'save_each_cycle': False,
+        'noise': 0.001,
         # train/test option
         'test_only': False
     }
@@ -441,8 +442,8 @@ if __name__ == '__main__':
     for i in [6]:
         layer = agent.actor.layers[i]
         shape = layer.get_weights()[0].shape
-        weights = layer.get_weights()[0] + np.random.rand(shape[0], shape[1])*0.001
-        bias = layer.get_weights()[1] + np.random.rand(shape[1])*0.001
+        weights = layer.get_weights()[0] + np.random.rand(shape[0], shape[1])*config.noise
+        bias = layer.get_weights()[1] + np.random.rand(shape[1])*config.noise
         layer.set_weights([weights, bias])
     
     for i in range(len(agent.value.layers)):
